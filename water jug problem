@@ -1,0 +1,48 @@
+from collections import deque
+def is_visited(state, visited_states):
+    return state in visited_states
+def water_jug_solver(jug1_capacity, jug2_capacity, target):
+    initial_state = (0, 0)
+    queue = deque([initial_state])
+    visited_states = set()
+    parent = {initial_state: None}
+    while queue:
+        current_state = queue.popleft()
+        jug1, jug2 = current_state
+        if jug1 == target or jug2 == target:
+            solution = []
+            while current_state is not None:
+                solution.append(current_state)
+                current_state = parent[current_state]
+            solution.reverse()
+            return solution
+        visited_states.add(current_state)
+        next_states = []
+        next_states.append((jug1_capacity, jug2))
+        next_states.append((jug1, jug2_capacity))
+        next_states.append((0, jug2))
+        next_states.append((jug1, 0))
+        pour_amount = min(jug1, jug2_capacity - jug2)
+        next_states.append((jug1 - pour_amount, jug2 + pour_amount))
+        pour_amount = min(jug2, jug1_capacity - jug1)
+        next_states.append((jug1 + pour_amount, jug2 - pour_amount))
+        for state in next_states:
+            if not is_visited(state, visited_states):
+                queue.append(state)
+                visited_states.add(state)
+                parent[state] = current_state
+    return None 
+def main():
+    jug1_capacity = 4  # Capacity of the first jug (in liters)
+    jug2_capacity = 3  # Capacity of the second jug (in liters)
+    target = 2         # Target amount of water (in liters)
+    solution = water_jug_solver(jug1_capacity, jug2_capacity, target)
+    if solution:
+        print("Solution found:")
+        for step in solution:
+            print(f"Jug1: {step[0]}L, Jug2: {step[1]}L")
+    else:
+        print("No solution found.")
+
+if __name__ == "__main__":
+    main()
