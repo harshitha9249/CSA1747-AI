@@ -1,0 +1,107 @@
+import heapq
+
+class Puzzle:
+    def __init__(self, board, parent=None, move=0):
+        self.board = board
+        self.parent = parent
+        self.move = move
+        self.cost = 0 if parent is None else parent.cost + 1
+        self.heuristic = self.calculate_heuristic()
+
+    def calculate_heuristic(self):
+        """Calculate the Manhattan distance heuristic."""
+        distance = 0
+        for i in range(1, 9):
+            current_position = self.board.index(i)
+            goal_position = GOAL_STATE.index(i)
+            current_row, current_col = divmod(current_position, 3)
+            goal_row, goal_col = divmod(goal_position, 3)
+            distance += abs(current_row - goal_row) + abs(current_col - goal_col)
+        return distance
+
+    def is_goal(self):
+        """Check if the puzzle is in the goal state."""
+        return self.board == GOAL_STATE
+
+    def get_neighbors(self):
+        """Generate all possible moves from the current puzzle state."""
+        neighbors = []
+        blank_index = self.board.index(0)
+        row, col = divmod(blank_index, 3)
+
+        def swap_and_create(new_row, new_col):
+            new_board = self.board[:]
+            new_blank_index = new_row * 3 + new_col
+            new_board[blank_index], new_board[new_blank_index] = new_board[new_blank_index], new_board[blank_index]
+            neighbors.append(Puzzle(new_board, self, self.move + 1))
+
+        if row > 0: 
+            swap_and_create(row - 1, col)
+        if row < 2:  
+            swap_and_create(row + 1, col)
+        if col > 0: 
+            swap_and_create(row, col - 1)
+        if col < 2: 
+            swap_and_create(row, col + 1)
+
+        return neighbors
+
+    def __lt__(self, other):
+        """Comparator for the priority queue."""
+        return (self.cost + self.heuristic) < (other.cost + other.heuristic)
+
+    def __eq__(self, other):
+        """Equality check to compare two puzzle states."""
+        return self.board == other.board
+
+    def __hash__(self):
+        """Hash function to allow use in sets and dictionaries."""
+        return hash(tuple(self.board))
+
+def solve_puzzle(start_board):
+    """Solve the 8-puzzle using the A* search algorithm."""
+    open_list = []
+    closed_set = set()
+
+    start_puzzle = Puzzle(start_board)
+    heapq.heappush(open_list, start_puzzle)
+
+    while open_list:
+        current_puzzle = heapq.heappop(open_list)
+
+        if current_puzzle.is_goal():
+            return current_puzzle
+
+        closed_set.add(current_puzzle)
+
+        for neighbor in current_puzzle.get_neighbors():
+            if neighbor not in closed_set and neighbor not in open_list:
+                heapq.heappush(open_list, neighbor)
+
+    return None
+
+def print_solution(solution):
+    """Print the solution path from start to goal."""
+    path = []
+    while solution:
+        path.append(solution.board)
+        solution = solution.parent
+
+    path.reverse()
+    for step in path:
+        print(step[:3])
+        print(step[3:6])
+        print(step[6:])
+        print()
+
+if __name__ == "__main__":
+    START_BOARD = [1, 2, 3, 4, 0, 5, 6, 7, 8]
+    GOAL_STATE = [1, 2, 3, 4, 5, 6, 7, 8, 0]
+
+    solution = solve_puzzle(START_BOARD)
+
+    if solution:
+        print("Solution found:")
+        print_solution(solution)
+    else:
+        print("No solution exists.")
