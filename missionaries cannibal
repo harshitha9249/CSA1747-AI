@@ -1,0 +1,71 @@
+class State:
+    def __init__(self, missionaries, cannibals, boat, depth=0, parent=None):
+        self.missionaries = missionaries
+        self.cannibals = cannibals
+        self.boat = boat
+        self.depth = depth
+        self.parent = parent
+
+    def is_valid(self):
+        if self.missionaries < 0 or self.cannibals < 0 or self.missionaries > 3 or self.cannibals > 3:
+            return False
+        if self.missionaries > 0 and self.missionaries < self.cannibals:
+            return False
+        if self.missionaries < 3 and self.missionaries > self.cannibals:
+            return False
+        return True
+
+    def is_goal(self):
+        return self.missionaries == 0 and self.cannibals == 0 and self.boat == 0
+
+    def get_possible_moves(self):
+        moves = []
+        if self.boat == 1:
+            moves.append(State(self.missionaries - 2, self.cannibals, 0, self.depth + 1, self))  # Two missionaries cross
+            moves.append(State(self.missionaries, self.cannibals - 2, 0, self.depth + 1, self))  # Two cannibals cross
+            moves.append(State(self.missionaries - 1, self.cannibals - 1, 0, self.depth + 1, self))  # One missionary and one cannibal cross
+            moves.append(State(self.missionaries - 1, self.cannibals, 0, self.depth + 1, self))  # One missionary crosses
+            moves.append(State(self.missionaries, self.cannibals - 1, 0, self.depth + 1, self))  # One cannibal crosses
+        else:
+            moves.append(State(self.missionaries + 2, self.cannibals, 1, self.depth + 1, self))  # Two missionaries cross back
+            moves.append(State(self.missionaries, self.cannibals + 2, 1, self.depth + 1, self))  # Two cannibals cross back
+            moves.append(State(self.missionaries + 1, self.cannibals + 1, 1, self.depth + 1, self))  # One missionary and one cannibal cross back
+            moves.append(State(self.missionaries + 1, self.cannibals, 1, self.depth + 1, self))  # One missionary crosses back
+            moves.append(State(self.missionaries, self.cannibals + 1, 1, self.depth + 1, self))  # One cannibal crosses back
+        return [move for move in moves if move.is_valid()]
+
+    def __eq__(self, other):
+        return self.missionaries == other.missionaries and self.cannibals == other.cannibals and self.boat == other.boat
+
+    def __hash__(self):
+        return hash((self.missionaries, self.cannibals, self.boat))
+def bfs(initial_state):
+    queue = [initial_state]
+    visited = set()
+    visited.add(initial_state)
+    while queue:
+        state = queue.pop(0)
+        if state.is_goal():
+            return state
+        for move in state.get_possible_moves():
+            if move not in visited:
+                queue.append(move)
+                visited.add(move)
+    return None
+def print_solution(state):
+    path = []
+    while state:
+        path.append(state)
+        state = state.parent
+    path.reverse()
+    for step in path:
+        print(f"Missionaries: {step.missionaries}, Cannibals: {step.cannibals}, Boat: {'Left' if step.boat == 1 else 'Right'}")
+
+if __name__ == "__main__":
+    initial_state = State(3, 3, 1)  # All missionaries and cannibals are on the left side
+    solution = bfs(initial_state)
+    if solution:
+        print("Solution found:")
+        print_solution(solution)
+    else:
+        print("No solution found.")
