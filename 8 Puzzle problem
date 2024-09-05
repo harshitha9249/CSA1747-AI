@@ -9,7 +9,6 @@ class Puzzle:
         self.heuristic = self.calculate_heuristic()
 
     def calculate_heuristic(self):
-        """Calculate the Manhattan distance heuristic."""
         distance = 0
         for i in range(1, 9):
             current_position = self.board.index(i)
@@ -20,11 +19,9 @@ class Puzzle:
         return distance
 
     def is_goal(self):
-        """Check if the puzzle is in the goal state."""
         return self.board == GOAL_STATE
 
     def get_neighbors(self):
-        """Generate all possible moves from the current puzzle state."""
         neighbors = []
         blank_index = self.board.index(0)
         row, col = divmod(blank_index, 3)
@@ -47,19 +44,15 @@ class Puzzle:
         return neighbors
 
     def __lt__(self, other):
-        """Comparator for the priority queue."""
         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
 
     def __eq__(self, other):
-        """Equality check to compare two puzzle states."""
         return self.board == other.board
 
     def __hash__(self):
-        """Hash function to allow use in sets and dictionaries."""
         return hash(tuple(self.board))
 
 def solve_puzzle(start_board):
-    """Solve the 8-puzzle using the A* search algorithm."""
     open_list = []
     closed_set = set()
 
@@ -81,7 +74,6 @@ def solve_puzzle(start_board):
     return None
 
 def print_solution(solution):
-    """Print the solution path from start to goal."""
     path = []
     while solution:
         path.append(solution.board)
